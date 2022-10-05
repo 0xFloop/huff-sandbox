@@ -1,0 +1,88 @@
+/// @title Escrow
+/// @notice SPDX-License-Identifier: MIT
+/// @author floop <https://github.com/0xFloop>
+/// @notice Huff adaptation of (https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/escrow/Escrow.sol)
+
+#include "huffmate/auth/Owned.huff"
+#include "huffmate/data-structures/Hashmap.huff"
+
+// Additional Functions
+#define function withdraw() nonpayable returns ()
+#define function deposit(address) payable returns ()
+
+//Events
+#define event Withdrawn(address indexed, uint256)
+#define event Deposited(address indexed, uint256)
+
+
+/**
+* @dev Withdraw accumulated balance for a payee, forwarding all gas to the
+* recipient.
+*
+* WARNING: Forwarding all gas opens the door to reentrancy vulnerabilities.
+* Make sure you trust the recipient, or are either following the
+* checks-effects-interactions pattern or using {ReentrancyGuard}.
+*
+* @param payee The address whose funds will be withdrawn and transferred to.
+*
+* Emits a {Withdrawn} event.
+*/
+#define macro WITHDRAW() = takes(1) returns(0) {
+    IS_OWNER()
+
+    //load payment amount from mapping
+    
+    //set payment mapping to 0
+
+    //send value to payee
+
+    //emit Withdrawm event
+
+
+
+    stop
+}
+
+#define macro DEPOSIT() = takes(1) returns(0) {
+    IS_OWNER()
+
+    //load payment amount from mapping
+    
+    //set payment mapping to 0
+
+    //send value to payee
+
+    //emit Withdrawm event
+
+
+    stop
+}
+
+#define macro MAIN() = takes (0) returns (0) {
+    // Load the function selector
+    pc calldataload 0xE0 shr    // [sig]
+
+    dup1                        // [sig, sig]
+    __FUNC_SIG(withdraw)        // [withdrawSig, sig, sig]
+    eq                          // [(sig == withdrawSig), sig]
+    withdraw                    // [withdraw, (sig == withdrawSig), sig]
+    jumpi                       // [sig]
+
+
+    dup1                        // [sig, sig]
+    __FUNC_SIG(deposit)         // [depositSig, sig, sig]
+    eq                          // [(sig == depositSig), sig]
+    deposit                     // [deposit, (sig == depositSig), sig]
+    jumpi                       // [sig]
+
+
+    
+    0x00                        //[0x00, sig]
+    dup1                        //[0x00, 0x00, sig]
+    revert                      //[]
+
+    withdraw:
+        WITHDRAW()
+    deposit:
+        DEPOSIT()
+}

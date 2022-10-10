@@ -41,6 +41,25 @@
 
     0x04 calldataload //[payee]
 
+    dup1     //[payee, payee]
+
+    [DEPOSITS_SLOT] // [DEPOSITS_SLOT, payee, payee]
+
+    LOAD_ELEMENT_FROM_KEYS(0x00) // [payee deposits, payee]
+
+    swap1 // [payee, payee deposits]
+
+    0x00 // [0, payee, payee deposits]
+
+    swap1 // [payee, 0, payee deposits]
+
+
+    [DEPOSITS_SLOT] //[DEPOSITS_SLOT, payee, 0, payee deposits]
+
+    STORE_ELEMENT_FROM_KEYS(0x00) // [payee deposits]
+
+    
+
 
 
     //load payment amount from mapping

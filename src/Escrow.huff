@@ -9,10 +9,16 @@
 // Additional Functions
 #define function withdraw() nonpayable returns ()
 #define function deposit(address) payable returns ()
+#define function depositsOf(address) view returns (uint256)
 
 //Events
 #define event Withdrawn(address indexed, uint256)
 #define event Deposited(address indexed, uint256)
+
+//Constructor
+#define macro CONSTRUCTOR() = takes (0) returns (0) {
+    OWNED_CONSTRUCTOR()
+}
 
 
 /**
@@ -27,8 +33,12 @@
 *
 * Emits a {Withdrawn} event.
 */
-#define macro WITHDRAW() = takes(1) returns(0) {
+#define macro WITHDRAW() = takes(0) returns(0) {
     IS_OWNER()
+
+    0x04 calldataload //[payee]
+
+
 
     //load payment amount from mapping
     
@@ -43,9 +53,28 @@
     stop
 }
 
-#define macro DEPOSIT() = takes(1) returns(0) {
+#define macro DEPOSIT() = takes(0) returns(0) {
     IS_OWNER()
 
+    0x04 calldataload //[payee]
+
+    //load payment amount from mapping
+    
+    //set payment mapping to 0
+
+    //send value to payee
+
+    //emit Withdrawm event
+
+
+    stop
+}
+
+#define macro DEPOSITS_OF() = takes(0) returns(0) {
+    0x04 calldataload //[payee]
+
+    
+    
     //load payment amount from mapping
     
     //set payment mapping to 0
@@ -60,7 +89,10 @@
 
 #define macro MAIN() = takes (0) returns (0) {
     // Load the function selector
-    pc calldataload 0xE0 shr    // [sig]
+    pc                          // [0x00]
+    calldataload                // [sigRightPaddedTo32Bytes]
+    0xE0                        // [0xE0, sigRightPaddedTo32Bytes]
+    shr                         // [sig]
 
     dup1                        // [sig, sig]
     __FUNC_SIG(withdraw)        // [withdrawSig, sig, sig]
@@ -81,8 +113,22 @@
     dup1                        //[0x00, 0x00, sig]
     revert                      //[]
 
+    dup1                        // [sig, sig]
+    __FUNC_SIG(depositsOf)      // [depositsOfSig, sig, sig]
+    eq                          // [(sig == depositSig), sig]
+    depositsOf                  // [depositsOf, (sig == depositsOfSig), sig]
+    jumpi                       // [sig]
+
+
+    
+    0x00                        //[0x00, sig]
+    dup1                        //[0x00, 0x00, sig]
+    revert                      //[]
+
     withdraw:
         WITHDRAW()
     deposit:
         DEPOSIT()
+    depositsOf:
+        DEPOSITS_OF()
 }

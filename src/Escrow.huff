@@ -102,18 +102,12 @@
 #define macro DEPOSITS_OF() = takes(0) returns(0) {
     0x04 calldataload //[payee]
 
-
+    [DEPOSITS_SLOT] // [DEPOSITS_SLOT, payee]
     
-    //load payment amount from mapping
-    
-    //set payment mapping to 0
+    LOAD_ELEMENT_FROM_KEYS(0x00) // [payee deposits]
 
-    //send value to payee
-
-    //emit Withdrawm event
-
-
-    stop
+    0x00 mstore                         // []
+    0x20 0x00 return 
 }
 
 #define macro MAIN() = takes (0) returns (0) {

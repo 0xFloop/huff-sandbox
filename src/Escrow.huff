@@ -39,40 +39,36 @@
 #define macro WITHDRAW() = takes(0) returns(0) {
     IS_OWNER()
 
-    0x04 calldataload //[payee]
+    0x04 calldataload             //[payee]
 
-    dup1     //[payee, payee]
+    dup1                          //[payee, payee]
 
-    [DEPOSITS_SLOT] // [DEPOSITS_SLOT, payee, payee]
+    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, payee]
 
-    LOAD_ELEMENT_FROM_KEYS(0x00) // [payee deposits, payee]
+    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits, payee]
 
-    swap1 // [payee, payee deposits]
+    swap1                         // [payee, payee deposits]
 
-    0x00 // [0, payee, payee deposits]
+    0x00                          // [0, payee, payee deposits]
 
-    swap1 // [payee, 0, payee deposits]
+    swap1                         // [payee, 0, payee deposits]
 
-
-    [DEPOSITS_SLOT] //[DEPOSITS_SLOT, payee, 0, payee deposits]
+    [DEPOSITS_SLOT]               //[DEPOSITS_SLOT, payee, 0, payee deposits]
 
     STORE_ELEMENT_FROM_KEYS(0x00) // [payee deposits]
 
+
+    // send the deposits amount to caller
     
+    0x00                           // [retOffset, value]
+    0x00                           // [argSize, retOffset, value]
+    0x00                           // [argOffset, argSize, retOffset, value]
+    0x00                           // [retSize, argOffset, argSize, retOffset, value]
+    swap4                          // [value, argOffset, argSize, retOffset, retSize]
+    0x04 calldataload              // [to, value, argOffset, argSize, retOffset, retSize]
+    gas                            // [gas, to, value, argOffset, argSize, retOffset, retSize]
 
-
-
-    //load payment amount from mapping
-    
-    //set payment mapping to 0
-
-    //send value to payee
-
-    //emit Withdrawm event
-
-
-
-    stop
+    call
 }
 
 /// @notice Deposit
@@ -80,73 +76,71 @@
 #define macro DEPOSIT() = takes(0) returns(0) {
     IS_OWNER()
 
-    CALLVALUE   // [msg.value]
+    CALLVALUE                     // [msg.value]
 
-    0x04 calldataload // [payee, msg.value]
+    0x04 calldataload             // [payee, msg.value]
 
-    [DEPOSITS_SLOT] // [DEPOSITS_SLOT, payee, msg.value]
+    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, msg.value]
     
-    LOAD_ELEMENT_FROM_KEYS(0x00) // [payee deposits, msg.value]
+    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits, msg.value]
 
-    add // [payee deposits + msg.value]
+    add                           // [payee deposits + msg.value]
 
-    0x04 calldataload //[payee, payee deposits + msg.value]
+    0x04 calldataload             //[payee, payee deposits + msg.value]
 
-    [DEPOSITS_SLOT] //[DEPOSITS_SLOT, payee, payee deposits + msg.value]
+    [DEPOSITS_SLOT]               //[DEPOSITS_SLOT, payee, payee deposits + msg.value]
 
     STORE_ELEMENT_FROM_KEYS(0x00) // []
-
-    stop
 }
 
 #define macro DEPOSITS_OF() = takes(0) returns(0) {
-    0x04 calldataload //[payee]
+    0x04 calldataload             //[payee]
 
-    [DEPOSITS_SLOT] // [DEPOSITS_SLOT, payee]
+    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee]
     
-    LOAD_ELEMENT_FROM_KEYS(0x00) // [payee deposits]
+    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits]
 
-    0x00 mstore                         // []
+    0x00 mstore                   // []
     0x20 0x00 return 
 }
 
 #define macro MAIN() = takes (0) returns (0) {
     // Load the function selector
-    pc                          // [0x00]
-    calldataload                // [sigRightPaddedTo32Bytes]
-    0xE0                        // [0xE0, sigRightPaddedTo32Bytes]
-    shr                         // [sig]
+    pc                            // [0x00]
+    calldataload                  // [sigRightPaddedTo32Bytes]
+    0xE0                          // [0xE0, sigRightPaddedTo32Bytes]
+    shr                           // [sig]
 
-    dup1                        // [sig, sig]
-    __FUNC_SIG(withdraw)        // [withdrawSig, sig, sig]
-    eq                          // [(sig == withdrawSig), sig]
-    withdraw                    // [withdraw, (sig == withdrawSig), sig]
-    jumpi                       // [sig]
-
-
-    dup1                        // [sig, sig]
-    __FUNC_SIG(deposit)         // [depositSig, sig, sig]
-    eq                          // [(sig == depositSig), sig]
-    deposit                     // [deposit, (sig == depositSig), sig]
-    jumpi                       // [sig]
+    dup1                          // [sig, sig]
+    __FUNC_SIG(withdraw)          // [withdrawSig, sig, sig]
+    eq                            // [(sig == withdrawSig), sig]
+    withdraw                      // [withdraw, (sig == withdrawSig), sig]
+    jumpi                         // [sig]
 
 
-    
-    0x00                        //[0x00, sig]
-    dup1                        //[0x00, 0x00, sig]
-    revert                      //[]
-
-    dup1                        // [sig, sig]
-    __FUNC_SIG(depositsOf)      // [depositsOfSig, sig, sig]
-    eq                          // [(sig == depositSig), sig]
-    depositsOf                  // [depositsOf, (sig == depositsOfSig), sig]
-    jumpi                       // [sig]
+    dup1                          // [sig, sig]
+    __FUNC_SIG(deposit)           // [depositSig, sig, sig]
+    eq                            // [(sig == depositSig), sig]
+    deposit                       // [deposit, (sig == depositSig), sig]
+    jumpi                         // [sig]
 
 
     
-    0x00                        //[0x00, sig]
-    dup1                        //[0x00, 0x00, sig]
-    revert                      //[]
+    0x00                          //[0x00, sig]
+    dup1                          //[0x00, 0x00, sig]
+    revert                        //[]
+
+    dup1                          // [sig, sig]
+    __FUNC_SIG(depositsOf)        // [depositsOfSig, sig, sig]
+    eq                            // [(sig == depositSig), sig]
+    depositsOf                    // [depositsOf, (sig == depositsOfSig), sig]
+    jumpi                         // [sig]
+
+
+    
+    0x00                          //[0x00, sig]
+    dup1                          //[0x00, 0x00, sig]
+    revert                        //[]
 
     withdraw:
         WITHDRAW()

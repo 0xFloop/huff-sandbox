@@ -76,7 +76,7 @@
 /// @notice Deposit
 /// @notice Deposits msg.value to the payee address
 #define macro DEPOSIT() = takes(0) returns(0) {
-    IS_OWNER()
+    // IS_OWNER()
 
     callvalue                     // [msg.value]
 

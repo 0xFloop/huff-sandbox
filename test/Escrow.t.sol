@@ -10,6 +10,7 @@ interface IEscrow {
     function depositsOf(address) external view returns (uint256);
 }
 
+
 contract EscrowTesting is Test {
     /// @dev Address of the SimpleStore contract.
     IEscrow public escrow;
@@ -18,14 +19,17 @@ contract EscrowTesting is Test {
     function setUp() public {
         escrow = IEscrow(HuffDeployer.deploy("Escrow"));
     }
+
     function testDeposit() public {
-        escrow.deposit{value: 22222}(msg.sender);
+        vm.deal(msg.sender, 10000 ether);
         console.log("deposits amount below");
-        console.log(escrow.depositsOf(msg.sender));
+
+        escrow.deposit{value: 1 ether}(0x36280df9BcC006eEfB34998318697E73bCC22048);
+
+        console.log("deposits amount below");
+
+        console.log(escrow.depositsOf(0x36280df9BcC006eEfB34998318697E73bCC22048));
     }
-    function testFunction( ) public {
-        uint256 value = escrow.depositsOf(msg.sender);
-        console.log("hello");
-    }
+
 }
 

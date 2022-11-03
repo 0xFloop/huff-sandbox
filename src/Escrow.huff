@@ -129,11 +129,6 @@
     jumpi                         // [sig]
 
 
-    
-    0x00                          //[0x00, sig]
-    dup1                          //[0x00, 0x00, sig]
-    revert                        //[]
-
     dup1                          // [sig, sig]
     __FUNC_SIG(depositsOf)        // [depositsOfSig, sig, sig]
     eq                            // [(sig == depositSig), sig]

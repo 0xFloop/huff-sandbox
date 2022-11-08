@@ -37,7 +37,7 @@
 * Emits a {Withdrawn} event.
 */
 #define macro WITHDRAW() = takes(0) returns(0) {
-    IS_OWNER()
+    // IS_OWNER()
 
     0x04 calldataload             //[payee]
 
@@ -110,9 +110,10 @@
 
 #define macro MAIN() = takes (0) returns (0) {
     // Load the function selector
+
     pc                            // [0x00]
-    calldataload                  // [sigRightPaddedTo32Bytes]
-    0xE0                          // [0xE0, sigRightPaddedTo32Bytes]
+    calldataload                  // [sigWith28ExtraBytes]
+    0xE0                          // [0xE0, sigWith28ExtraBytes]
     shr                           // [sig]
 
     dup1                          // [sig, sig]
@@ -135,6 +136,7 @@
     depositsOf                    // [depositsOf, (sig == depositsOfSig), sig]
     jumpi                         // [sig]
 
+    OWNED_MAIN()    
 
     
     0x00                          //[0x00, sig]

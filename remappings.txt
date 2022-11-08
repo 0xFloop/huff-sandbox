@@ -1,0 +1,5 @@
+ds-test/=lib/forge-std/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+chiru-labs/=lib/ERC721A/contracts/
+BoringSolidity/=lib/BoringSolidity/contracts/
+foundry-huff=lib/foundry-huff/src/

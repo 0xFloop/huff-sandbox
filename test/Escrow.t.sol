@@ -9,28 +9,30 @@ interface IEscrow {
     function withdraw() external;
     function deposit(address) external payable;
     function depositsOf(address) external view returns (uint256);
-    function owner() external view returns (address);
+    function owner() external returns (address);
+    function setOwner(address) external;
 }
 
 contract EscrowTesting is Test {
     IEscrow public escrow;
+    address owner = address(0xdead);
+
+    address addr1 = 0xf573d99385C05c23B24ed33De616ad16a43a0919;
 
     function setUp() public {
-        vm.deal(msg.sender, 10000 ether);
-
-        escrow = IEscrow(HuffDeployer.deploy("Escrow"));
+        vm.deal(address(owner), 1000 ether);
+        escrow = IEscrow(HuffDeployer.deploy_with_args("Escrow", abi.encode(owner)));
+        
     }
 
     function testDeposit() public {
-        escrow.deposit{value: 1 ether}(0xf573d99385C05c23B24ed33De616ad16a43a0919);
-
-        console.log("deposits amount below");
-
-        console.log(escrow.depositsOf(0xf573d99385C05c23B24ed33De616ad16a43a0919));
+        vm.prank(owner);
+        escrow.deposit{value: 1 ether}(addr1);
+        assertEq(escrow.depositsOf(addr1), 1 ether);
     }
 
     function testGetOwnerFromImportedContract() public {
-        address owner = escrow.owner();
-        console.log(owner);
+        vm.prank(owner);
+        escrow.setOwner(address(0));
     }
 }

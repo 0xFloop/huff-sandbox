@@ -12,8 +12,8 @@
 #define function depositsOf(address) view returns (uint256)
 
 //Events
-#define event Withdrawn(address indexed, uint256)
-#define event Deposited(address indexed, uint256)
+#define event Deposited(address indexed payee, uint256)
+#define event Withdrawn(address indexed payee, uint256)
 
 //Deposits mapping slot
 #define constant DEPOSITS_SLOT = FREE_STORAGE_POINTER()
@@ -37,7 +37,7 @@
 * Emits a {Withdrawn} event.
 */
 #define macro WITHDRAW() = takes(0) returns(0) {
-    // IS_OWNER()
+    IS_OWNER()
 
     0x04 calldataload             //[payee]
 
@@ -70,13 +70,17 @@
 
     call
 
+    __EVENT_HASH(OwnerUpdated)     // [sig, from, owner]
+    0x00 0x00                      // [0, 0, sig, from, owner]
+    log3    
+
     stop
 }
 
 /// @notice Deposit
 /// @notice Deposits msg.value to the payee address
 #define macro DEPOSIT() = takes(0) returns(0) {
-    // IS_OWNER()
+    IS_OWNER()
 
     callvalue                     // [msg.value]
 
@@ -116,6 +120,8 @@
     0xE0                          // [0xE0, sigWith28ExtraBytes]
     shr                           // [sig]
 
+    OWNED_MAIN()    
+
     dup1                          // [sig, sig]
     __FUNC_SIG(withdraw)          // [withdrawSig, sig, sig]
     eq                            // [(sig == withdrawSig), sig]
@@ -135,8 +141,6 @@
     eq                            // [(sig == depositSig), sig]
     depositsOf                    // [depositsOf, (sig == depositsOfSig), sig]
     jumpi                         // [sig]
-
-    OWNED_MAIN()    
 
     
     0x00                          //[0x00, sig]

@@ -7,13 +7,16 @@
 #include "huffmate/data-structures/Hashmap.huff"
 
 // Additional Functions
-#define function withdraw() nonpayable returns ()
+#define function withdraw(address payable) nonpayable returns ()
 #define function deposit(address) payable returns ()
 #define function depositsOf(address) view returns (uint256)
 
 //Events
-#define event Deposited(address indexed payee, uint256)
-#define event Withdrawn(address indexed payee, uint256)
+#define event Deposited(address indexed payee, uint256 weiAmount)
+#define event Withdrawn(address indexed payee, uint256 weiAmount)
+
+#define constant DEPOSITED_EVENT_SIG = 0x2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c4
+#define constant WITHDRAWN_EVENT_SIG = 0x7084f5476618d8e60b11ef0d7d3f06914655adb8793e28ff7f018d4c76d505d5
 
 //Deposits mapping slot
 #define constant DEPOSITS_SLOT = FREE_STORAGE_POINTER()
@@ -43,35 +46,41 @@
 
     dup1                          //[payee, payee]
 
-    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, payee]
+    dup1                          //[payee, payee]
 
-    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits, payee]
+    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, payee, payee]
 
-    swap1                         // [payee, payee deposits]
+    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits, payee, payee]
 
-    0x00                          // [0, payee, payee deposits]
+    dup1                          // [payee deposits, payee deposits, payee, payee]
 
-    swap1                         // [payee, 0, payee deposits]
+    swap2                         // [payee, payee deposits, payee deposits, payee]
 
-    [DEPOSITS_SLOT]               //[DEPOSITS_SLOT, payee, 0, payee deposits]
+    0x00                          // [0, payee, payee deposits, payee deposits, payee]
 
-    STORE_ELEMENT_FROM_KEYS(0x00) // [payee deposits]
+    swap1                         // [payee, 0, payee deposits, payee deposits, payee]
+
+    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, 0, payee deposits, payee deposits, payee]
+
+    STORE_ELEMENT_FROM_KEYS(0x00) // [payee deposits, payee deposits, payee]
 
 
     // send the deposits amount to caller
     
-    0x00                           // [retOffset, value]
-    0x00                           // [argSize, retOffset, value]
-    0x00                           // [argOffset, argSize, retOffset, value]
-    0x00                           // [retSize, argOffset, argSize, retOffset, value]
-    swap4                          // [value, argOffset, argSize, retOffset, retSize]
-    0x04 calldataload              // [to, value, argOffset, argSize, retOffset, retSize]
-    gas                            // [gas, to, value, argOffset, argSize, retOffset, retSize]
+    0x00                           // [retOffset, value, payee deposits, payee]
+    0x00                           // [argSize, retOffset, value, payee deposits, payee]
+    0x00                           // [argOffset, argSize, retOffset, value, payee deposits, payee]
+    0x00                           // [retSize, argOffset, argSize, retOffset, value, payee deposits, payee]
+    swap4                          // [value, argOffset, argSize, retOffset, retSize, payee deposits, payee]
+    0x04 calldataload              // [to, value, argOffset, argSize, retOffset, retSize, payee deposits, payee]
+    gas                            // [gas, to, value, argOffset, argSize, retOffset, retSize, payee deposits, payee]
 
-    call
+    call                           // [payee deposits, payee]
 
-    __EVENT_HASH(OwnerUpdated)     // [sig, from, owner]
-    0x00 0x00                      // [0, 0, sig, from, owner]
+    swap1                          // [payee, payee deposits]
+
+    [WITHDRAWN_EVENT_SIG]          // [sig, payee, payee deposits]
+    0x00 0x00                      // [0, 0, sig, payee, payee deposits]
     log3    
 
     stop
@@ -86,17 +95,25 @@
 
     0x04 calldataload             // [payee, msg.value]
 
-    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, msg.value]
+    dup2                          // [msg.value, payee, msg.value]
+
+    dup1                          // [payee, msg.value, payee, msg.value]
+
+    [DEPOSITS_SLOT]               // [DEPOSITS_SLOT, payee, msg.value, payee, msg.value]
     
-    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits, msg.value]
+    LOAD_ELEMENT_FROM_KEYS(0x00)  // [payee deposits, msg.value, payee, msg.value]
 
-    add                           // [payee deposits + msg.value]
+    add                           // [payee deposits + msg.value, payee, msg.value]
 
-    0x04 calldataload             //[payee, payee deposits + msg.value]
+    0x04 calldataload             //[payee, payee deposits + msg.value, payee, msg.value]
 
-    [DEPOSITS_SLOT]               //[DEPOSITS_SLOT, payee, payee deposits + msg.value]
+    [DEPOSITS_SLOT]               //[DEPOSITS_SLOT, payee, payee deposits + msg.value, payee, msg.value]
 
-    STORE_ELEMENT_FROM_KEYS(0x00) // []
+    STORE_ELEMENT_FROM_KEYS(0x00) // [payee, msg.value]
+
+    [DEPOSITED_EVENT_SIG]         // [sig, payee, msg.value]
+    0x00 0x00                     // [0, 0, sig, payee, msg.value]
+    log3    
     
     stop
 }

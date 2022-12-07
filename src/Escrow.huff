@@ -67,21 +67,24 @@
 
     // send the deposits amount to caller
     
-    0x00                           // [retOffset, value, payee deposits, payee]
-    0x00                           // [argSize, retOffset, value, payee deposits, payee]
-    0x00                           // [argOffset, argSize, retOffset, value, payee deposits, payee]
-    0x00                           // [retSize, argOffset, argSize, retOffset, value, payee deposits, payee]
-    swap4                          // [value, argOffset, argSize, retOffset, retSize, payee deposits, payee]
-    0x04 calldataload              // [to, value, argOffset, argSize, retOffset, retSize, payee deposits, payee]
-    gas                            // [gas, to, value, argOffset, argSize, retOffset, retSize, payee deposits, payee]
+    0x00                           // [retOffset, payee deposits, payee deposits, payee]
+    0x00                           // [argSize, retOffset, payee deposits, payee deposits, payee]
+    0x00                           // [argOffset, argSize, retOffset, payee deposits, payee deposits, payee]
+    0x00                           // [retSize, argOffset, argSize, retOffset, payee deposits, payee deposits, payee]
+    swap4                          // [payee deposits, argOffset, argSize, retOffset, retSize, payee deposits, payee]
+    0x04 calldataload             // [to, payee deposits, argOffset, argSize, retOffset, retSize, payee deposits, payee]
+    gas                      // [gas, to, payee deposits, argOffset, argSize, retOffset, retSize, payee deposits, payee]
 
-    call                           // [payee deposits, payee]
+    call                           // [sucess, payee deposits, payee]
 
-    swap1                          // [payee, payee deposits]
+    pop                            // [payee deposits, payee]
 
-    [WITHDRAWN_EVENT_SIG]          // [sig, payee, payee deposits]
-    0x00 0x00                      // [0, 0, sig, payee, payee deposits]
-    log3    
+    0x00                           // [0, payee deposits, payee]
+    mstore                         // [payee]
+
+    [WITHDRAWN_EVENT_SIG]          // [sig, payee]
+    0x20 0x00                      // [0, 32, sig, payee]
+    log2
 
     stop
 }
@@ -89,7 +92,7 @@
 /// @notice Deposit
 /// @notice Deposits msg.value to the payee address
 #define macro DEPOSIT() = takes(0) returns(0) {
-    IS_OWNER()
+    // IS_OWNER()
 
     callvalue                     // [msg.value]
 
@@ -112,8 +115,15 @@
     STORE_ELEMENT_FROM_KEYS(0x00) // [payee, msg.value]
 
     [DEPOSITED_EVENT_SIG]         // [sig, payee, msg.value]
-    0x00 0x00                     // [0, 0, sig, payee, msg.value]
-    log3    
+    swap2                         // [msg.value, payee, sig]
+
+    0x00                          // [0, msg.value, sig, payee]
+    mstore                        // [payee, sig]
+
+    swap1                         // [sig, payee]
+
+    0x20 0x00                     // [0, 32, sig, payee]
+    log2   
     
     stop
 }

@@ -29,16 +29,18 @@ contract EscrowTesting is Test {
 
     function testDeposit() public {
         vm.prank(owner);
-        vm.expectEmit(true, false, false, true);
-        emit Deposited(address(addr1), 1 ether);
+        vm.expectEmit(true, true, true, true);
+        emit Deposited(addr1, uint256(1 ether));
         escrow.deposit{value: 1 ether}(addr1);
-        assertEq(escrow.depositsOf(addr1), 1 ether);
     }
 
     function testWithdraw() public {
         vm.prank(owner);
-        vm.expectEmit(true, false, false, true);
-        emit Withdrawn(address(addr1), 1 ether);
+        escrow.deposit{value: 1 ether}(addr1);
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true);
+        emit Withdrawn(addr1, uint256(1 ether));
         escrow.withdraw(addr1);
         assertEq(escrow.depositsOf(addr1), 0);
     }
@@ -48,6 +50,4 @@ contract EscrowTesting is Test {
         escrow.setOwner(address(0));
         assert(escrow.owner() == address(0));
     }
-
-
 }
